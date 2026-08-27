@@ -30,7 +30,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add sounds/1.mp3 sounds/2.mp3 sounds/3.mp3 sounds/4.mp3 sounds/5.mp3 sounds/6.mp3 sounds/7.mp3 sounds/SHA256SUMS
+          git add sounds/1.mp3 sounds/2.mp3 sounds/3.mp3 sounds/4.mp3 sounds/5.mp3 sounds/6.mp3 sounds/7.mp3 sounds/debs.mp3 sounds/SHA256SUMS
           if git diff --cached --quiet; then
             echo 'No sound changes to commit.'
             exit 0
