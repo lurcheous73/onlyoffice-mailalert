@@ -5,8 +5,9 @@
         return;
     }
 
-    const VERSION = "0.001";
+    const VERSION = "0.002";
     const SOUND_KEY = "oo-mail-bong-sound";
+    const CUSTOM_SOUND_KEY = "oo-mail-alert-custom-sound";
 
     let previousUnread = null;
     let hooked = false;
@@ -23,6 +24,11 @@
         }
 
         return n;
+    }
+
+    function customSound() {
+        const value = localStorage.getItem(CUSTOM_SOUND_KEY);
+        return value && value.trim() ? value.trim() : null;
     }
 
     function aprilFoolsSound() {
@@ -48,8 +54,12 @@
         return "/addons/mail/sounds/" + number + ".mp3";
     }
 
-    function playSound(number) {
-        const audio = new Audio(soundUrl(number));
+    function normalSoundUrl() {
+        return customSound() || soundUrl(selectedSound());
+    }
+
+    function playUrl(url) {
+        const audio = new Audio(url);
         audio.volume = 0.85;
 
         audio.play().catch(function (err) {
@@ -105,7 +115,7 @@
         if (unread > previousUnread) {
             const increase = unread - previousUnread;
             const april = aprilFoolsSound();
-            const sound = april || selectedSound();
+            const url = april ? soundUrl(april) : normalSoundUrl();
 
             log(
                 "new mail:",
@@ -115,10 +125,10 @@
                 "->",
                 unread,
                 "sound:",
-                sound
+                url
             );
 
-            playSound(sound);
+            playUrl(url);
         }
 
         previousUnread = unread;
@@ -163,7 +173,7 @@
 
         hooked = true;
         log("loaded v" + VERSION);
-        log("selected sound:", selectedSound());
+        log("selected sound:", customSound() || selectedSound());
     }
 
     window.OOMailBong = {
@@ -174,16 +184,31 @@
                 throw new Error("Sound must be between 1 and 6");
             }
 
+            localStorage.removeItem(CUSTOM_SOUND_KEY);
             localStorage.setItem(SOUND_KEY, String(number));
             log("sound set to", number);
         },
 
         getSound: function () {
-            return selectedSound();
+            return customSound() || selectedSound();
+        },
+
+        setCustomSound: function (url) {
+            if (typeof url !== "string" || !url.trim()) {
+                throw new Error("Custom sound URL is required");
+            }
+
+            localStorage.setItem(CUSTOM_SOUND_KEY, url.trim());
+            log("custom sound set to", url.trim());
+        },
+
+        clearCustomSound: function () {
+            localStorage.removeItem(CUSTOM_SOUND_KEY);
+            log("custom sound cleared; selected sound:", selectedSound());
         },
 
         test: function () {
-            playSound(selectedSound());
+            playUrl(normalSoundUrl());
         }
     };
 
