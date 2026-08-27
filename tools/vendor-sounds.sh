@@ -15,36 +15,29 @@ declare -A URLS=(
   [5]='https://www.myinstants.com/media/sounds/windows-10-notify-email.mp3'
   [6]='https://www.myinstants.com/media/sounds/windows-longhorn-new-email.mp3'
   [7]='https://www.myinstants.com/media/sounds/crazy-frog-bros-audiotrimmer.mp3'
+  [debs]='https://www.myinstants.com/media/sounds/taco-bell-bong.mp3'
 )
 
-for num in 1 2 3 4 5 6 7; do
+for num in 1 2 3 4 5 6 7 debs; do
     url="${URLS[$num]}"
     tmp="$(mktemp)"
-
     echo "=== $num ==="
     echo "$url"
-
     curl -fsSL -A "$UA" -e "$REFERER" "$url" -o "$tmp"
-
     mime="$(file -b --mime-type "$tmp")"
     case "$mime" in
         audio/mpeg|audio/mp3|application/octet-stream) ;;
-        *)
-            echo "FAIL: $url returned unexpected MIME $mime" >&2
-            rm -f "$tmp"
-            exit 1
-            ;;
+        *) echo "FAIL: $url returned unexpected MIME $mime" >&2; rm -f "$tmp"; exit 1 ;;
     esac
-
     mv "$tmp" "$ROOT/sounds/$num.mp3"
     echo "saved sounds/$num.mp3"
 done
 
 (
     cd "$ROOT/sounds"
-    sha256sum 1.mp3 2.mp3 3.mp3 4.mp3 5.mp3 6.mp3 7.mp3 > SHA256SUMS
+    sha256sum 1.mp3 2.mp3 3.mp3 4.mp3 5.mp3 6.mp3 7.mp3 debs.mp3 > SHA256SUMS
 )
 
 echo
 echo "Vendored sound files:"
-ls -lh "$ROOT"/sounds/{1,2,3,4,5,6,7}.mp3
+ls -lh "$ROOT"/sounds/{1,2,3,4,5,6,7,debs}.mp3
