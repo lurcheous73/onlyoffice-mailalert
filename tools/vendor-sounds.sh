@@ -2,30 +2,29 @@
 set -Eeuo pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-MANIFEST="$ROOT/sounds/SOURCES.tsv"
 UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'
+REFERER='https://www.myinstants.com/'
 
 mkdir -p "$ROOT/sounds"
 
-while IFS=$'\t' read -r num name page; do
-    [[ -n "$num" && -n "$page" ]] || continue
+declare -A URLS=(
+  [1]='https://www.myinstants.com/media/sounds/bong.mp3'
+  [2]='https://www.myinstants.com/media/sounds/fears-to-fathom-notification-sound.mp3'
+  [3]='https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3'
+  [4]='https://www.myinstants.com/media/sounds/yahoo-email-sound.mp3'
+  [5]='https://www.myinstants.com/media/sounds/windows-10-notify-email.mp3'
+  [6]='https://www.myinstants.com/media/sounds/windows-longhorn-new-email.mp3'
+  [7]='https://www.myinstants.com/media/sounds/crazy-frog-bros-audiotrimmer.mp3'
+)
 
-    echo "=== $num: $name ==="
-    html="$(curl -fsSL -A "$UA" "$page")"
-
-    mp3="$(printf '%s' "$html" \
-        | grep -oE '/media/sounds/[^"'"'"'?#]+\.mp3' \
-        | head -1 || true)"
-
-    if [[ -z "$mp3" ]]; then
-        echo "FAIL: could not resolve MP3 from $page" >&2
-        exit 1
-    fi
-
-    url="https://www.myinstants.com${mp3}"
+for num in 1 2 3 4 5 6 7; do
+    url="${URLS[$num]}"
     tmp="$(mktemp)"
 
-    curl -fsSL -A "$UA" "$url" -o "$tmp"
+    echo "=== $num ==="
+    echo "$url"
+
+    curl -fsSL -A "$UA" -e "$REFERER" "$url" -o "$tmp"
 
     mime="$(file -b --mime-type "$tmp")"
     case "$mime" in
@@ -39,7 +38,7 @@ while IFS=$'\t' read -r num name page; do
 
     mv "$tmp" "$ROOT/sounds/$num.mp3"
     echo "saved sounds/$num.mp3"
-done < "$MANIFEST"
+done
 
 (
     cd "$ROOT/sounds"
