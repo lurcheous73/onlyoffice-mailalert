@@ -1,0 +1,39 @@
+name: Vendor notification sounds
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-sounds.yml'
+      - 'tools/vendor-sounds.sh'
+      - 'sounds/SOURCES.tsv'
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install file utility
+        run: sudo apt-get update && sudo apt-get install -y file
+
+      - name: Vendor MP3 files
+        run: bash tools/vendor-sounds.sh
+
+      - name: Commit vendored sounds
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sounds/1.mp3 sounds/2.mp3 sounds/3.mp3 sounds/4.mp3 sounds/5.mp3 sounds/6.mp3 sounds/7.mp3 sounds/SHA256SUMS
+          if git diff --cached --quiet; then
+            echo 'No sound changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Vendor notification sound assets'
+          git push
